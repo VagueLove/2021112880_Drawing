@@ -9,6 +9,7 @@ struct Node
 class CSlist
 {
 public:
+
 	CSlist();
 	Node* head;
 	//Í·²å
