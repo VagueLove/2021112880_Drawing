@@ -50,14 +50,12 @@ void Padding::Scan_Seed_Fill(CDC* pDC)
 			//Ïò×óÌî³ä
 			while (pDC->GetPixel(i, cur.y) == BefFilled_Color)
 			{
-				//Pixel_Points.push_back({ i, cur.y });
 				pDC->SetPixel({ i, cur.y }, CurFilled_Color);
 				--i;
 			}
 			//ÏòÓÒÌî³ä
 			while (pDC->GetPixel(j, cur.y) == BefFilled_Color)
 			{
-				//Pixel_Points.push_back({ i, cur.y });
 				pDC->SetPixel({ j, cur.y }, CurFilled_Color);
 				++j;
 			}

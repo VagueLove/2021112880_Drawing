@@ -14,7 +14,7 @@ public:
 	//设置控制点
 	void Set_ControlPoint(CPoint point);
 
-	double Base_Fun(int i, int k, double u, std::vector<double> knot);
+	double BaseFunction(int i, int k, double u, const std::vector<double>& knot);
 	CPoint BSpline(int n, int k, double t, std::vector<CPoint> control, std::vector<double> knot);
 	
 	//获取当前控制点数量

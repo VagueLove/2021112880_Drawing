@@ -92,40 +92,36 @@ void BSplineCurve::Set_ControlPoint(CPoint point)
     controlPoint.push_back(point);
 }
 
-double BSplineCurve::Base_Fun(int i, int k, double u, std::vector<double> knot)
+double BSplineCurve::BaseFunction(int i, int k, double u, const std::vector<double>& knot)
 {
-    double left, right;
+    double left = 0.0;
+    double right = 0.0;
+
     if (k == 1) {
         if (knot[i] <= u && u < knot[i + 1]) {
-            return 1;
+            return 1.0;
         }
         else {
-            return 0;
+            return 0.0;
         }
     }
     else {
-        if (knot[i + k - 1] == knot[i]) {
-            left = 0;
+        if (knot[i + k - 1] != knot[i]) {
+            left = (u - knot[i]) / (knot[i + k - 1] - knot[i]) * BaseFunction(i, k - 1, u, knot);
         }
-        else {
-            left = (u - knot[i]) / (knot[i + k - 1] - knot[i]) * Base_Fun(i, k - 1, u, knot);
-        }
-        if (knot[i + k] == knot[i + 1]) {
-            right = 0;
-        }
-        else {
-            right = (knot[i + k] - u) / (knot[i + k] - knot[i + 1]) * Base_Fun(i + 1, k - 1, u, knot);
+        if (knot[i + k] != knot[i + 1]) {
+            right = (knot[i + k] - u) / (knot[i + k] - knot[i + 1]) * BaseFunction(i + 1, k - 1, u, knot);
         }
         return left + right;
     }
 }
 
+
 CPoint BSplineCurve::BSpline(int n, int k, double t, std::vector<CPoint> control, std::vector<double> knot)
 {
-    int i, j;
-    double x = 0, y = 0, b;
-    for (i = 0; i < n; i++) {
-        b = Base_Fun(i, k, t, knot);
+    double x = 0.0, y = 0.0, b = 0.0;
+    for (int i = 0; i < n; i++) {
+        b = BaseFunction(i, k, t, knot);
         x += control[i].x * b;
         y += control[i].y * b;
     }
