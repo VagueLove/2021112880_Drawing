@@ -5,8 +5,9 @@ class CQuare : public Graphics
 {
 public:
 	CQuare();
+	~CQuare() = default;
 	void Set_first_point(CPoint p);
-	void Get_other_point(CPoint p);
+	void Get_other_point();
 	void Set_end_point(CPoint p);
 	
 	void Draw(CDC* pDC);
@@ -18,8 +19,6 @@ public:
 	CPoint GetEnd();
 	//std::vector<CPoint> Pixel_Points;
 private:
-	POINT square_first_point;
-	POINT square_east_point;
-	POINT square_south_point;
-	POINT square_end_point;
+	//Æðµã£º0£¬ÖÕµã£º2
+	CPoint Vertices[4];
 };

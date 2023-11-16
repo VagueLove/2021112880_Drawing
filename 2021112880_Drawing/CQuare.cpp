@@ -6,54 +6,55 @@ CQuare::CQuare()
 }
 void CQuare::Set_first_point(CPoint p)
 {
-	square_first_point = p;
+	Vertices[0] = p;
 }
 void CQuare::Set_end_point(CPoint p)
 {
-	square_end_point = p;
+	Vertices[2] = p;
 }
-void CQuare::Get_other_point(CPoint p)
+void CQuare::Get_other_point()
 {
-	square_east_point.x = square_end_point.x;
-	square_east_point.y = square_first_point.y;
+	Vertices[1].x = Vertices[2].x;
+	Vertices[1].y = Vertices[0].y;
 
-	square_south_point.x = square_first_point.x;
-	square_south_point.y = square_end_point.y;
+	Vertices[3].x = Vertices[0].x;
+	Vertices[3].y = Vertices[2].y;
 }
 void CQuare::Draw(CDC* pDC)
 {
-	pDC->Rectangle(square_first_point.x, square_first_point.y, square_end_point.x, square_end_point.y);
+	Get_other_point();
+	//按逆时针顺序绘制顶点数组（直线段），得到矩形
+	int i = 0;
+	for (; i < 3; ++i)
+	{
+		pDC->MoveTo(Vertices[i]);
+		pDC->LineTo(Vertices[i + 1]);
+	}
+	pDC->MoveTo(Vertices[0]);
+	pDC->LineTo(Vertices[i]);
 }
 
 CPoint CQuare::GetStart()
 {
-	return square_first_point;
+	return Vertices[0];
 }
 CPoint CQuare::GetEnd()
 {
-	return square_end_point;
+	return Vertices[2];
 }
 int CQuare::Selected(CPoint p)
 {
-	if (abs(p.x - square_first_point.x) < 5 && p.y >= min(square_first_point.y, square_end_point.y) &&
-		p.y <= max(square_end_point.y, square_first_point.y))
+	if (abs(p.x - Vertices[0].x) < 5 && p.y >= min(Vertices[0].y, Vertices[2].y) &&
+		p.y <= max(Vertices[2].y, Vertices[0].y))
 		return 1;
-	if (abs(p.x - square_end_point.x) < 5 && p.y >= min(square_first_point.y, square_end_point.y) &&
-		p.y <= max(square_end_point.y, square_first_point.y))
+	if (abs(p.x - Vertices[2].x) < 5 && p.y >= min(Vertices[0].y, Vertices[2].y) &&
+		p.y <= max(Vertices[2].y, Vertices[0].y))
 		return 1;
-	if (abs(p.y - square_first_point.y) < 5 && p.x >= min(square_first_point.x, square_end_point.x) &&
-		p.x <= max(square_end_point.x, square_first_point.x))
+	if (abs(p.y - Vertices[0].y) < 5 && p.x >= min(Vertices[0].x, Vertices[2].x) &&
+		p.x <= max(Vertices[2].x, Vertices[0].x))
 		return 1;
-	if (abs(p.y - square_end_point.y) < 5 && p.x >= min(square_first_point.x, square_end_point.x) &&
-		p.x <= max(square_end_point.x, square_first_point.x))
+	if (abs(p.y - Vertices[2].y) < 5 && p.x >= min(Vertices[0].x, Vertices[2].x) &&
+		p.x <= max(Vertices[2].x, Vertices[0].x))
 		return 1;
 	return 0;
 }
-
-//void CQuare::RePadding(CDC* pDC)
-//{
-//	for(const auto& i : Pixel_Points)
-//	{
-//		pDC->SetPixel(i, RGB(255, 0, 255));
-//	}
-//}

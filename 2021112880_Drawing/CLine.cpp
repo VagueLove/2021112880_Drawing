@@ -82,6 +82,7 @@ void CLine::Draw(CDC* pDC)
 {
 	if (Is_CenPointDraw)
 	{
+		//采用中点画线法绘制直线
 		CenPointDraw(pDC);
 	}
 	else
