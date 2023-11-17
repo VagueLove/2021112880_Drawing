@@ -4,7 +4,7 @@
 #define ROUND(d) int(d+0.5)
 void Bezier::ReadPoint(CPoint p)
 {
-	if(n <10)
+	if(n < 9)
 	{
 		Pt[n+1] = p;
 		++n;

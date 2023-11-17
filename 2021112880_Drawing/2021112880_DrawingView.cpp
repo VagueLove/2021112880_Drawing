@@ -31,6 +31,7 @@ CGetIntersection* m_intersection = NULL;
 Padding* pad = nullptr;
 BSplineCurve* m_bspline = nullptr;
 Bezier* m_bezier = nullptr;
+BSpline* m_bSpline = nullptr;
 
 //鼠标光标
 HCURSOR hCursor = LoadCursor(NULL, IDC_PERSON);
@@ -72,6 +73,7 @@ ON_COMMAND(ID_Scan_Seed_Fill, &CMy2021112880DrawingView::OnScanSeedFill)
 ON_COMMAND(ID_Simple_Seed_Fill, &CMy2021112880DrawingView::OnSimpleSeedFill)
 ON_COMMAND(ID_B_Spline_Curve, &CMy2021112880DrawingView::OnBSplineCurve)
 ON_COMMAND(ID_Bezier, &CMy2021112880DrawingView::OnBezier)
+ON_COMMAND(ID_BSpline_3, &CMy2021112880DrawingView::OnBspline3)
 END_MESSAGE_MAP()
 
 // CMy2021112880DrawingView 构造/析构
@@ -102,12 +104,18 @@ BOOL CMy2021112880DrawingView::PreCreateWindow(CREATESTRUCT& cs)
 }
 
 // CMy2021112880DrawingView 绘图
-void CMy2021112880DrawingView::OnDraw(CDC* /*pDC*/)
+void CMy2021112880DrawingView::OnDraw(CDC* pDC)
 {
 	CMy2021112880DrawingDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
 		return;
+	//CRect rect;//定义矩形
+	//GetClientRect(&rect);//获得客户区的大小
+	//pDC->SetMapMode(MM_ANISOTROPIC);//pDC自定义坐标系
+	//pDC->SetWindowExt(rect.Width(), rect.Height());//设置窗口范围
+	//pDC->SetViewportExt(rect.Width(), -rect.Height());//设置视区范围,x轴水平向右，y轴垂直向上
+	//pDC->SetViewportOrg(rect.Width() / 2, rect.Height() / 2);//客户区中心为原点
 
 	int i, len;
 	len = m_link_list.Length();
@@ -275,17 +283,26 @@ void CMy2021112880DrawingView::LButtonDown_Set_Type(CPoint point)
 	}break;
 	case 6:
 	{
-		//通过左键按下设置3个控制点
-		if(m_bspline->GetCount_ControlPoint() < 3)
+		//通过左键按下控制点
+		if(m_bspline->GetCount_controlPoints() < 3)
 		{
 			Draw_Point(point);
-			m_bspline->Set_ControlPoint(point);
+			m_bspline->Set_controlPoints(point);
 		}
 	}break;
 	case 7://Bezier曲线
 	{
 		Draw_Point(point);
 		m_bezier->ReadPoint(point);
+	}break;
+	case 8://B样条曲线——3阶
+	{
+		if(m_bSpline->GetN() < 5)
+		{
+			Draw_Point(point);
+			m_bSpline->SetControlPoint(point);
+		}
+		
 	}break;
 	default:
 		break;
@@ -932,6 +949,19 @@ void CMy2021112880DrawingView::OnRButtonUp(UINT nFlags, CPoint point)
 		m_bezier = new Bezier;
 		ReleaseDC(pDC);
 	}
+	else if (type == 8)
+	{
+		//右键抬起绘制B_3曲线
+		CDC* pDC = GetDC();
+		m_bSpline->DrawBSplineCurve(pDC);
+		m_bSpline->DrawControlPolygon(pDC);
+		Node* rpaint = new Node;
+		rpaint->now_type = 8;
+		rpaint->data = m_bSpline;
+		m_link_list.InputFront(rpaint);
+		m_bSpline = new BSpline;
+		ReleaseDC(pDC);
+	}
 	//填充
 	{
 		CString str;
@@ -1076,4 +1106,13 @@ void CMy2021112880DrawingView::OnBezier()
 	type = 7;
 	if(!m_bezier)
 		m_bezier = new Bezier;
+}
+
+
+void CMy2021112880DrawingView::OnBspline3()
+{
+	// TODO: 在此添加命令处理程序代码
+	type = 8;
+	if (!m_bSpline)
+		m_bSpline = new BSpline;
 }

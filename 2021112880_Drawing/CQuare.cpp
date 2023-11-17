@@ -25,13 +25,12 @@ void CQuare::Draw(CDC* pDC)
 	Get_other_point();
 	//按逆时针顺序绘制顶点数组（直线段），得到矩形
 	int i = 0;
+	pDC->MoveTo(Vertices[i]);
 	for (; i < 3; ++i)
 	{
-		pDC->MoveTo(Vertices[i]);
 		pDC->LineTo(Vertices[i + 1]);
 	}
-	pDC->MoveTo(Vertices[0]);
-	pDC->LineTo(Vertices[i]);
+	pDC->LineTo(Vertices[0]);
 }
 
 CPoint CQuare::GetStart()

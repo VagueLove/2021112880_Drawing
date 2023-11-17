@@ -12,6 +12,7 @@ DataDraw* DataDraw::Get_Draw(int type)
 	case 5:return new PolyLineDraw(); break;
 	case 6:return new BSplineCurveDraw(); break;
 	case 7:return new BezierDraw(); break;
+	case 8:return new BSplineDraw(); break;
 	default:break;
 	}
 }
@@ -103,3 +104,9 @@ void BezierDraw::Draw(Node* p, CDC* pDC)
 	((Bezier*)p->data)->Draw(pDC);
 	((Bezier*)p->data)->DrawControlPolygon(pDC);
 }
+void BSplineDraw::Draw(Node* p, CDC* pDC)
+{
+	((BSpline*)p->data)->DrawBSplineCurve(pDC);
+	((BSpline*)p->data)->DrawControlPolygon(pDC);
+}
+

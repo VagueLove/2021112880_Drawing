@@ -108,8 +108,8 @@ void CMy2021112880DrawingDoc::Serialize(CArchive& ar)
 			break;
 			case 6:
 			{
-				ar << ((BSplineCurve*)temp->data)->bSplinePoint.size();
-				for (const auto& i : ((BSplineCurve*)temp->data)->bSplinePoint)
+				ar << ((BSplineCurve*)temp->data)->bSplinePoints.size();
+				for (const auto& i : ((BSplineCurve*)temp->data)->bSplinePoints)
 				{
 					ar << i.x << i.y;
 				}
@@ -215,7 +215,7 @@ void CMy2021112880DrawingDoc::Serialize(CArchive& ar)
 				for (int i = 0; i < len2; ++i)
 				{
 					ar >> temp.y >> temp.x;
-					m_bSpline->bSplinePoint.push_back(temp);
+					m_bSpline->bSplinePoints.push_back(temp);
 				}
 				repaint->now_RGB = now_RGB;
 				repaint->now_type = now_type;

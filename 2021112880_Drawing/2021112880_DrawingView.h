@@ -13,6 +13,7 @@
 #include "Padding.h"
 #include "BSplineCurve.h"
 #include "Bezier.h"
+#include "BSpline.h"
 
 class CMy2021112880DrawingView : public CView
 {
@@ -115,6 +116,7 @@ public:
 	afx_msg void OnSimpleSeedFill();
 	afx_msg void OnBSplineCurve();
 	afx_msg void OnBezier();
+	afx_msg void OnBspline3();
 };
 
 #ifndef _DEBUG  // 2021112880_DrawingView.cpp 中的调试版本

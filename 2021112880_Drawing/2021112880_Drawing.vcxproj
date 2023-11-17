@@ -187,6 +187,7 @@
     <ClInclude Include="2021112880_DrawingDoc.h" />
     <ClInclude Include="2021112880_DrawingView.h" />
     <ClInclude Include="Bezier.h" />
+    <ClInclude Include="BSpline.h" />
     <ClInclude Include="BSplineCurve.h" />
     <ClInclude Include="CCircle.h" />
     <ClInclude Include="CDrawVerLine.h" />
@@ -210,6 +211,7 @@
     <ClCompile Include="2021112880_DrawingDoc.cpp" />
     <ClCompile Include="2021112880_DrawingView.cpp" />
     <ClCompile Include="Bezier.cpp" />
+    <ClCompile Include="BSpline.cpp" />
     <ClCompile Include="BSplineCurve.cpp" />
     <ClCompile Include="CCircle.cpp" />
     <ClCompile Include="CDrawVerLine.cpp" />
