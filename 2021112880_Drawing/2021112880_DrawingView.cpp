@@ -17,6 +17,7 @@
 #define new DEBUG_NEW
 #endif
 #include <iostream>
+#define N_MAX_POINT 10
 
 CSlist m_link_list;
 CLine* m_pline;
@@ -29,6 +30,7 @@ CDrawVerLine* m_ver_line = NULL;
 CGetIntersection* m_intersection = NULL;
 Padding* pad = nullptr;
 BSplineCurve* m_bspline = nullptr;
+Bezier* m_bezier = nullptr;
 
 //鼠标光标
 HCURSOR hCursor = LoadCursor(NULL, IDC_PERSON);
@@ -69,6 +71,7 @@ ON_COMMAND(ID_Bresen_Circle, &CMy2021112880DrawingView::OnBresenCircle)
 ON_COMMAND(ID_Scan_Seed_Fill, &CMy2021112880DrawingView::OnScanSeedFill)
 ON_COMMAND(ID_Simple_Seed_Fill, &CMy2021112880DrawingView::OnSimpleSeedFill)
 ON_COMMAND(ID_B_Spline_Curve, &CMy2021112880DrawingView::OnBSplineCurve)
+ON_COMMAND(ID_Bezier, &CMy2021112880DrawingView::OnBezier)
 END_MESSAGE_MAP()
 
 // CMy2021112880DrawingView 构造/析构
@@ -88,9 +91,7 @@ CMy2021112880DrawingView::CMy2021112880DrawingView() noexcept
 	Padding_type = 0;
 }
 
-CMy2021112880DrawingView::~CMy2021112880DrawingView()
-{
-}
+CMy2021112880DrawingView::~CMy2021112880DrawingView(){}
 
 BOOL CMy2021112880DrawingView::PreCreateWindow(CREATESTRUCT& cs)
 {
@@ -101,7 +102,6 @@ BOOL CMy2021112880DrawingView::PreCreateWindow(CREATESTRUCT& cs)
 }
 
 // CMy2021112880DrawingView 绘图
-
 void CMy2021112880DrawingView::OnDraw(CDC* /*pDC*/)
 {
 	CMy2021112880DrawingDoc* pDoc = GetDocument();
@@ -128,13 +128,9 @@ void CMy2021112880DrawingView::OnDraw(CDC* /*pDC*/)
 			ReleaseDC(pDC);
 		}
 	}
-
-	
 }
 
-
 // CMy2021112880DrawingView 打印
-
 BOOL CMy2021112880DrawingView::OnPreparePrinting(CPrintInfo* pInfo)
 {
 	// 默认准备
@@ -151,9 +147,7 @@ void CMy2021112880DrawingView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/
 	// TODO: 添加打印后进行的清理过程
 }
 
-
 // CMy2021112880DrawingView 诊断
-
 #ifdef _DEBUG
 void CMy2021112880DrawingView::AssertValid() const
 {
@@ -172,10 +166,7 @@ CMy2021112880DrawingDoc* CMy2021112880DrawingView::GetDocument() const // 非调
 }
 #endif //_DEBUG
 
-
 // CMy2021112880DrawingView 消息处理程序
-
-
 void CMy2021112880DrawingView::OnLine()
 {
 	// TODO: 在此添加命令处理程序代码
@@ -184,7 +175,6 @@ void CMy2021112880DrawingView::OnLine()
 	if(m_pline)
 		m_pline->Set_CenPointDraw_False();
 }
-
 
 void CMy2021112880DrawingView::OnRectangle()
 {
@@ -227,27 +217,16 @@ void CMy2021112880DrawingView::OnSelect()
 	IsOpenSelect = true;
 }
 
-void CMy2021112880DrawingView::OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/)
-{
-	// TODO: 在此处添加消息处理程序代码
-}
+void CMy2021112880DrawingView::OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/){}
 
 void CMy2021112880DrawingView::LButtonDown_Set_RGB()
 {
 	switch (what_RGB)
 	{
-	case 1:
-		what_RGB = 1;
-		break;
-	case 2:
-		what_RGB = 2;
-		break;
-	case 3:
-		what_RGB = 3;
-		break;
-	case 0:
-		what_RGB = 0;
-		break;
+	case 1:what_RGB = 1;break;
+	case 2:what_RGB = 2;break;
+	case 3:what_RGB = 3;break;
+	case 0:what_RGB = 0;break;
 	}
 }
 void CMy2021112880DrawingView::LButtonDown_Set_Type(CPoint point)
@@ -302,6 +281,11 @@ void CMy2021112880DrawingView::LButtonDown_Set_Type(CPoint point)
 			Draw_Point(point);
 			m_bspline->Set_ControlPoint(point);
 		}
+	}break;
+	case 7://Bezier曲线
+	{
+		Draw_Point(point);
+		m_bezier->ReadPoint(point);
 	}break;
 	default:
 		break;
@@ -454,31 +438,11 @@ void CMy2021112880DrawingView::LButtonUp_Set_RGB_Type(CPoint point)
 	Node* newPoint = new Node;
 	switch (what_RGB)
 	{
-	case 1:
-	{
-		newPoint->now_RGB = 1;
+	case 1:newPoint->now_RGB = 1;break;
+	case 2:newPoint->now_RGB = 2;break;
+	case 3:newPoint->now_RGB = 3;break;
+	case 0:newPoint->now_RGB = 0;break;
 	}
-	break;
-
-	case 2:
-	{
-		newPoint->now_RGB = 2;
-	}
-	break;
-
-	case 3:
-	{
-		newPoint->now_RGB = 3;
-	}
-	break;
-
-	case 0:
-	{
-		newPoint->now_RGB = 0;
-	}
-	break;
-	}
-
 	switch (type)
 	{
 	case 1:
@@ -488,7 +452,6 @@ void CMy2021112880DrawingView::LButtonUp_Set_RGB_Type(CPoint point)
 		m_link_list.InputFront(newPoint);
 	}
 	break;
-
 	case 2:
 	{
 		newPoint->now_type = 2;
@@ -496,7 +459,6 @@ void CMy2021112880DrawingView::LButtonUp_Set_RGB_Type(CPoint point)
 		m_link_list.InputFront(newPoint);
 	}
 	break;
-
 	case 3:
 	{
 		newPoint->now_type = 3;
@@ -504,10 +466,8 @@ void CMy2021112880DrawingView::LButtonUp_Set_RGB_Type(CPoint point)
 		m_link_list.InputFront(newPoint);
 	}
 	break;
-
 	case 4:
 		break;
-
 	case 5:
 	{
 		if (m_polyline)
@@ -530,9 +490,7 @@ void CMy2021112880DrawingView::LButtonUp_Set_RGB_Type(CPoint point)
 		}
 	}
 	break;
-
 	}
-
 }
 void CMy2021112880DrawingView::LButtonUp_Set_Function()
 {
@@ -674,6 +632,7 @@ void CMy2021112880DrawingView::LButtionDbCLK_For_Type(CPoint point)
 	}
 }
 
+//辅助绘制点，方便显示
 void CMy2021112880DrawingView::Draw_Point(CPoint point)
 {
 	CDC* pDC = GetDC();
@@ -701,25 +660,11 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 	CPen pen;
 	switch (color)
 	{
-	case 1:
-	{
-		pen.CreatePen(PS_SOLID, 1, RGB(255, 0, 0));//red
-	}break;	
-	case 2:
-	{
-		pen.CreatePen(PS_SOLID, 1, RGB(0, 255, 0));//green
-	}break;
-	case 3:
-	{
-		pen.CreatePen(PS_SOLID, 1, RGB(0, 0, 255));//blue
-	}break;
-	case 0:
-	{
-		pen.CreatePen(PS_SOLID, 1, RGB(0, 0, 0));//black
-	}break;
-
-	default:
-		break;
+	case 1:pen.CreatePen(PS_SOLID, 1, RGB(255, 0, 0));break;	
+	case 2:pen.CreatePen(PS_SOLID, 1, RGB(0, 255, 0));break;
+	case 3:pen.CreatePen(PS_SOLID, 1, RGB(0, 0, 255));break;
+	case 0:pen.CreatePen(PS_SOLID, 1, RGB(0, 0, 0));break;
+	default:break;
 	}
 	CPen* pOldPen = (CPen*)pDC->SelectObject(&pen);
 	switch (type)
@@ -733,8 +678,9 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 			m_pline->Draw(pDC);
 		}
 		else
+		{
 			go = true;
-
+		}
 		m_pline->Set_end_point(point);
 		m_pline->Draw(pDC);
 	}break;	
@@ -746,7 +692,9 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 			m_psquare->Draw(pDC);
 		}
 		else
+		{
 			go = true;
+		}
 		m_psquare->Set_end_point(point);
 		m_psquare->Draw(pDC);
 	}break;	
@@ -759,7 +707,9 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 			m_pcircle->Draw(pDC);
 		}
 		else
+		{
 			go = true;
+		}
 		m_pcircle->Get_Radius(point);
 		m_pcircle->Draw(pDC);
 	}break;	
@@ -773,7 +723,9 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 				m_pcurve->Draw(pDC);
 			}
 			else
+			{
 				go = true;
+			}
 			m_pcurve->Set_direc_point(point);
 			m_pcurve->Draw(pDC);
 		}
@@ -788,7 +740,9 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 				m_polyline->Draw(pDC);
 			}
 			else
+			{
 				go = true;
+			}
 			m_polyline->Get_point(point);
 			m_polyline->Draw(pDC);
 		}
@@ -800,13 +754,14 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 			m_bspline->Draw(pDC);
 		}
 		else
+		{
 			go = true;
+		}
 		m_bspline->Draw(pDC, point, what_RGB);
 	}break;
 	default:
 		break;
 	}
-
 	ReleaseDC(pDC);
 }
 
@@ -885,27 +840,11 @@ void CMy2021112880DrawingView::MouseMove_Draw_Basic_Graphics(CPoint point)
 		//根据不同颜色，绘制相应的图形
 		switch (what_RGB)
 		{
-		case 1:
-		{
-			MouseMove_Draw(point,what_RGB);
-		}break;
-		case 2: 
-		{
-			MouseMove_Draw(point, what_RGB);
-
-		}break;
-		case 3: 
-		{
-			MouseMove_Draw(point, what_RGB);
-
-		}break;
-		case 0: 
-		{
-			MouseMove_Draw(point, what_RGB);
-
-		}break;
-		default:
-			break;
+		case 1:MouseMove_Draw(point,what_RGB);break;
+		case 2: MouseMove_Draw(point, what_RGB);break;
+		case 3: MouseMove_Draw(point, what_RGB);break;
+		case 0: MouseMove_Draw(point, what_RGB);break;
+		default:break;
 		}
 	}
 }
@@ -920,9 +859,7 @@ void CMy2021112880DrawingView::OnMouseMove(UINT nFlags, CPoint point)
 	
 	MouseMove_Draw_Basic_Graphics(point);
 	MouseMove_IsSelect(point);
-	
 	CView::OnMouseMove(nFlags, point);
-
 }
 
 
@@ -934,7 +871,6 @@ void CMy2021112880DrawingView::OnLButtonDblClk(UINT nFlags, CPoint point)
 	CView::OnLButtonDblClk(nFlags, point);
 }
 
-
 void CMy2021112880DrawingView::OnClear()
 {
 	// TODO: 在此添加命令处理程序代码
@@ -945,7 +881,6 @@ void CMy2021112880DrawingView::OnClear()
 	pDC->FillSolidRect(&rc, RGB(255, 255, 255));
 	ReleaseDC(pDC);
 }
-
 
 void CMy2021112880DrawingView::OnRButtonUp(UINT nFlags, CPoint point)
 {
@@ -983,6 +918,19 @@ void CMy2021112880DrawingView::OnRButtonUp(UINT nFlags, CPoint point)
 		rpaint->data = m_bspline;
 		m_link_list.InputFront(rpaint);
 		m_bspline = new BSplineCurve;
+	}
+	else if (type == 7)
+	{
+		//右键抬起绘制Bezier曲线
+		CDC* pDC = GetDC();
+		m_bezier->Draw(pDC);
+		m_bezier->DrawControlPolygon(pDC);
+		Node* rpaint = new Node;
+		rpaint->now_type = 7;
+		rpaint->data = m_bezier;
+		m_link_list.InputFront(rpaint);
+		m_bezier = new Bezier;
+		ReleaseDC(pDC);
 	}
 	//填充
 	{
@@ -1038,6 +986,15 @@ void CMy2021112880DrawingView::OnRButtonUp(UINT nFlags, CPoint point)
 	CView::OnRButtonUp(nFlags, point);
 }
 
+BOOL CMy2021112880DrawingView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
+{
+	if (IsSelected && IsOpenSelect)
+	{
+		SetCursor(hCursor);
+		return TRUE;
+	}
+	return CView::OnSetCursor(pWnd, nHitTest, message);
+}
 //颜色设置
 void CMy2021112880DrawingView::OnBlue()
 {
@@ -1059,36 +1016,23 @@ void CMy2021112880DrawingView::OnBlack()
 	// TODO: 在此添加命令处理程序代码
 	what_RGB = 0;
 }
-
 void CMy2021112880DrawingView::OnDrawVerLine()
 {
 	// TODO: 在此添加命令处理程序代码
 	function = 1; //画垂线
 	type = 0;
 }
-
 void CMy2021112880DrawingView::OnGetCenter()
 {
 	// TODO: 在此添加命令处理程序代码
 	function = 3;//画圆心
 	type = 0;
 }
-
 void CMy2021112880DrawingView::OnGetIntersection()
 {
 	// TODO: 在此添加命令处理程序代码
 	function = 2;//求交点
 	type = 0;
-}
-
-BOOL CMy2021112880DrawingView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
-{
-	if (IsSelected && IsOpenSelect)
-	{
-		SetCursor(hCursor);
-		return TRUE;
-	}
-	return CView::OnSetCursor(pWnd, nHitTest, message);
 }
 
 void CMy2021112880DrawingView::OnCenterLine()
@@ -1097,16 +1041,12 @@ void CMy2021112880DrawingView::OnCenterLine()
 	type = 1;
 	CenPointDraw = 1;
 }
-
-
 void CMy2021112880DrawingView::OnBresenCircle()
 {
 	// TODO: 在此添加命令处理程序代码
 	type = 3;
 	BresenhamDraw = true;
 }
-
-
 void CMy2021112880DrawingView::OnScanSeedFill()
 {
 	// TODO: 在此添加命令处理程序代码
@@ -1114,8 +1054,6 @@ void CMy2021112880DrawingView::OnScanSeedFill()
 	if (!pad)
 		pad = new Padding;
 }
-
-
 void CMy2021112880DrawingView::OnSimpleSeedFill()
 {
 	// TODO: 在此添加命令处理程序代码
@@ -1123,12 +1061,19 @@ void CMy2021112880DrawingView::OnSimpleSeedFill()
 	if(!pad)
 		pad = new Padding;
 }
-
-
 void CMy2021112880DrawingView::OnBSplineCurve()
 {
 	// TODO: 在此添加命令处理程序代码
 	type = 6;
 	if (!m_bspline)
 		m_bspline = new BSplineCurve;
+}
+
+
+void CMy2021112880DrawingView::OnBezier()
+{
+	// TODO: 在此添加命令处理程序代码
+	type = 7;
+	if(!m_bezier)
+		m_bezier = new Bezier;
 }

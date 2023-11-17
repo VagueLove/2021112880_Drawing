@@ -6,6 +6,7 @@
 #include "CSlist.h"
 #include "PolyLine.h"
 #include "BSplineCurve.h"
+#include "Bezier.h"
 class DataDraw
 {
 public:
@@ -60,5 +61,14 @@ public:
 	~BSplineCurveDraw() = default;
 	void Draw(Node*, CDC*);
 };
+class BezierDraw :public DataDraw
+{
+public:
+	BezierDraw() = default;
+	~BezierDraw() = default;
+	void Draw(Node*, CDC*);
+};
+
+
 
 

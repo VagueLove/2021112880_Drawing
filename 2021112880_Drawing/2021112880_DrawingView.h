@@ -12,6 +12,7 @@
 #include "CGetIntersection.h"
 #include "Padding.h"
 #include "BSplineCurve.h"
+#include "Bezier.h"
 
 class CMy2021112880DrawingView : public CView
 {
@@ -42,7 +43,8 @@ public:
 	void MouseMove_IsSelect(CPoint point);
 	//鼠标移动，根据不同颜色绘制图形
 	void MouseMove_Draw(CPoint point, int color);
-
+protected:
+	
 	
 // 重写
 public:
@@ -112,6 +114,7 @@ public:
 	afx_msg void OnScanSeedFill();
 	afx_msg void OnSimpleSeedFill();
 	afx_msg void OnBSplineCurve();
+	afx_msg void OnBezier();
 };
 
 #ifndef _DEBUG  // 2021112880_DrawingView.cpp 中的调试版本
