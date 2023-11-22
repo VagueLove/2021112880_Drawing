@@ -80,6 +80,7 @@ public:
 	bool start;
 	bool go;
 	CPoint initTransformPoint;
+	bool IsSaveLinePoint = false;
 
 protected:
 
@@ -121,6 +122,7 @@ public:
 	afx_msg void OnRotate();
 	afx_msg void OnTranslate();
 	afx_msg void OnScale();
+	afx_msg void OnClipline();
 };
 
 #ifndef _DEBUG  // 2021112880_DrawingView.cpp 中的调试版本

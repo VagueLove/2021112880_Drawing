@@ -18,4 +18,3 @@ public:
 	void SetControlPoint(CPoint p);
 	int GetN();
 };
-

@@ -77,8 +77,26 @@ ON_COMMAND(ID_BSpline_3, &CMy2021112880DrawingView::OnBspline3)
 ON_COMMAND(ID_Rotate, &CMy2021112880DrawingView::OnRotate)
 ON_COMMAND(ID_Translate, &CMy2021112880DrawingView::OnTranslate)
 ON_COMMAND(ID_Scale, &CMy2021112880DrawingView::OnScale)
+ON_COMMAND(ID_ClipLine, &CMy2021112880DrawingView::OnClipline)
 END_MESSAGE_MAP()
 
+/*******************************************************/
+/*******************************************************/
+/*裁剪测试代码*/
+#define LEFT 1
+#define RIGHT 2
+#define BOTTOM 4
+#define TOP 8
+#define XL 100
+#define XR 300
+#define YT 100
+#define YB 250
+const UINT N = 8;
+CPoint ptset[N];
+int Flag = 0;
+/*******************************************************/
+/*******************************************************/
+/*裁剪测试代码*/
 // CMy2021112880DrawingView 构造/析构
 
 CMy2021112880DrawingView::CMy2021112880DrawingView() noexcept
@@ -115,6 +133,28 @@ void CMy2021112880DrawingView::OnDraw(CDC* pDC)
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
 		return;
+/*******************************************************/
+/*******************************************************/
+/*裁剪测试代码*/
+	//if(function == 9)
+	{
+		CPen newpen(PS_SOLID, 1, RGB(0, 0, 0));
+		CPen* old = pDC->SelectObject(&newpen);
+		pDC->Rectangle(CRect(XL, YT, XR, YB));
+		ptset[0] = CPoint(120, 150);
+		ptset[1] = CPoint(170, 110);
+		ptset[2] = CPoint(0, 190);
+		ptset[3] = CPoint(350, 150);
+		ptset[4] = CPoint(0, 250);
+		ptset[5] = CPoint(150, 230);
+		ptset[6] = CPoint(200, 50);
+		ptset[7] = CPoint(120, 150);
+		pDC->TextOutW(0, 20, L"双击鼠标左键，出现要剪切的线段");
+		pDC->SelectObject(old);
+	}
+/*******************************************************/
+/*******************************************************/
+/*裁剪测试代码*/
 	//CRect rect;//定义矩形
 	//GetClientRect(&rect);//获得客户区的大小
 	//pDC->SetMapMode(MM_ANISOTROPIC);//pDC自定义坐标系
@@ -248,6 +288,8 @@ void CMy2021112880DrawingView::LButtonDown_Set_Type(CPoint point)
 	{
 	case 1:
 	{
+		//TODO:将直线的点存入待裁剪数组
+
 		m_pline = new CLine;
 		if(function != 6 && function != 7 && function != 8)
 			m_pline->Set_start_point(point);
@@ -1053,7 +1095,24 @@ void CMy2021112880DrawingView::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	LButtionDbCLK_For_Type(point);
-
+/*******************************************************/
+/*******************************************************/
+/*裁剪测试代码*/
+	{
+		CDC* pDC = GetDC();
+		CPen newpen(PS_SOLID, 1, RGB(255, 0, 0));
+		CPen* old = pDC->SelectObject(&newpen);
+		Flag = 1;
+		for (int i = 0; i < N; i++) 
+		{
+			pDC->MoveTo(ptset[i]);
+			pDC->LineTo(ptset[i + 1]);
+			i++;
+		}
+	}
+/*******************************************************/
+/*******************************************************/
+/*裁剪测试代码*/
 	CView::OnLButtonDblClk(nFlags, point);
 }
 
@@ -1270,8 +1329,6 @@ void CMy2021112880DrawingView::OnBSplineCurve()
 	if (!m_bspline)
 		m_bspline = new BSplineCurve;
 }
-
-
 void CMy2021112880DrawingView::OnBezier()
 {
 	// TODO: 在此添加命令处理程序代码
@@ -1279,8 +1336,6 @@ void CMy2021112880DrawingView::OnBezier()
 	if(!m_bezier)
 		m_bezier = new Bezier;
 }
-
-
 void CMy2021112880DrawingView::OnBspline3()
 {
 	// TODO: 在此添加命令处理程序代码
@@ -1288,21 +1343,150 @@ void CMy2021112880DrawingView::OnBspline3()
 	if (!m_bSpline)
 		m_bSpline = new BSpline;
 }
-
 void CMy2021112880DrawingView::OnTranslate()
 {
 	// TODO: 在此添加命令处理程序代码
 	function = 6;
 }
-
 void CMy2021112880DrawingView::OnScale()
 {
 	// TODO: 在此添加命令处理程序代码
 	function = 7;
 }
-
 void CMy2021112880DrawingView::OnRotate()
 {
 	// TODO: 在此添加命令处理程序代码
 	function = 8;
 }
+/*******************************************************/
+/*******************************************************/
+/*裁剪测试代码*/
+void CMy2021112880DrawingView::OnClipline()
+{
+	//function = 9;
+	CDC* pDC = GetDC();
+	CPen newpen(PS_SOLID, 1, RGB(255, 0, 0));
+	CPen* old = pDC->SelectObject(&newpen);
+	if (Flag != 1) {
+		MessageBox(L"请先双击鼠标左击", L"警告！");
+	}
+	else {
+		float x, y;
+		int i;
+		int code1, code2;
+		RedrawWindow();
+		for (int i = 0; i < N; i++, i++) {
+			int c = 0;
+			if (ptset[i].x < XL)
+				c = c | LEFT;
+			else if (ptset[i].x > XR)
+				c = c | RIGHT;
+			if (ptset[i].y > YB)
+				c = c | BOTTOM;
+			else if (ptset[i].y < YT)
+				c = c | TOP;
+			code1 = c;
+			c = 0;
+			if (ptset[i + 1].x < XL)
+				c = c | LEFT;
+			else if (ptset[i + 1].x > XR)
+				c = c | RIGHT;
+			if (ptset[i + 1].y > YB)
+				c = c | BOTTOM;
+			else if (ptset[i + 1].y < YT)
+				c = c | TOP;
+			code2 = c;
+			if (code1 != 0 && code2 != 0 && (code1 & code2) == 0) {
+				if ((LEFT & code1) != 0) {
+					x = XL;
+					y = (float)ptset[i].y + (ptset[i + 1].y - ptset[i].y) * (XL - ptset[i].x) / (ptset[i + 1].x - ptset[i].x);
+				}
+				else if ((RIGHT & code1) != 0) {
+					x = XR;
+					y = (float)ptset[i].y + (ptset[i + 1].y - ptset[i].y) * (XR - ptset[i].x) / (ptset[i + 1].x - ptset[i].x);
+				}
+				else if ((BOTTOM & code1) != 0) {
+					y = YB;
+					x = (float)ptset[i].x + (ptset[i + 1].x - ptset[i].x) * (YB - ptset[i].y) / (ptset[i + 1].y - ptset[i + 1].y);
+				}
+				else if ((TOP & code1) != 0) {
+					y = YT;
+					x = (float)ptset[i].x + (ptset[i + 1].x - ptset[i].x) * (YT - ptset[i].y) / (ptset[i + 1].y - ptset[i].y);
+				}
+				ptset[i].x = (long)x;
+				ptset[i].y = (long)y;
+				if ((LEFT & code2) != 0) {
+					x = XL;
+					y = (float)ptset[i].y + (ptset[i + 1].y - ptset[i].y) * (XL - ptset[i].x) / (ptset[i + 1].x - ptset[i].x);
+				}
+				else if ((RIGHT & code2) != 0) {
+					x = XR;
+					y = (float)ptset[i].y + (ptset[i + 1].y - ptset[i].y) * (XR - ptset[i].x) / (ptset[i + 1].x - ptset[i].x);
+				}
+				else if ((BOTTOM & code2) != 0) {
+					y = YB;
+					x = (float)ptset[i].x + (ptset[i + 1].x - ptset[i].x) * (YB - ptset[i].y) / (ptset[i + 1].y - ptset[i + 1].y);
+				}
+				else if ((TOP & code2) != 0) {
+					y = YT;
+					x = (float)ptset[i].x + (ptset[i + 1].x - ptset[i].x) * (YT - ptset[i].y) / (ptset[i + 1].y - ptset[i].y);
+				}
+				ptset[i + 1].x = (long)x;
+				ptset[i + 1].y = (long)y;
+				pDC->MoveTo(ptset[i].x, ptset[i].y);
+				pDC->LineTo(ptset[i + 1].x, ptset[i + 1].y);
+			}
+			if (code1 == 0 && code2 == 0) {
+				pDC->MoveTo(ptset[i].x, ptset[i].y);
+				pDC->LineTo(ptset[i + 1].x, ptset[i + 1].y);
+			}
+			if (code1 == 0 && code2 != 0) {
+				pDC->MoveTo(ptset[0].x, ptset[0].y);
+				if ((LEFT & code2) != 0) {
+					x = XL;
+					y = (float)ptset[i].y + (ptset[i + 1].y - ptset[i].y) * (XL - ptset[i].x) / (ptset[i + 1].x - ptset[i].x);
+				}
+				else if ((RIGHT & code2) != 0) {
+					x = XR;
+					y = (float)ptset[i].y + (ptset[i + 1].y - ptset[i].y) * (XR - ptset[i].x) / (ptset[i + 1].x - ptset[i].x);
+				}
+				else if ((BOTTOM & code2) != 0) {
+					y = YB;
+					x = (float)ptset[i].x + (ptset[i + 1].x - ptset[i].x) * (YB - ptset[i].y) / (ptset[i + 1].y - ptset[i + 1].y);
+				}
+				else if ((TOP & code2) != 0) {
+					y = YT;
+					x = (float)ptset[i].x + (ptset[i + 1].x - ptset[i].x) * (YT - ptset[i].y) / (ptset[i + 1].y - ptset[i].y);
+				}
+				ptset[i + 1].x = (long)x;
+				ptset[i + 1].y = (long)y;
+				pDC->LineTo(ptset[i + 1].x, ptset[i + 1].y);
+			}
+			if (code1 != 0 && code2 == 0) {
+				pDC->MoveTo(ptset[i + 1].x, ptset[i + 1].y);
+				if ((LEFT & code1) != 0) {
+					x = XL;
+					y = (float)ptset[i].y + (ptset[i + 1].y - ptset[i].y) * (XL - ptset[i].x) / (ptset[i + 1].x - ptset[i].x);
+				}
+				else if ((RIGHT & code1) != 0) {
+					x = XR;
+					y = (float)ptset[i].y + (ptset[i + 1].y - ptset[i].y) * (XR - ptset[i].x) / (ptset[i + 1].x - ptset[i].x);
+				}
+				else if ((BOTTOM & code1) != 0) {
+					y = YB;
+					x = (float)ptset[i].x + (ptset[i + 1].x - ptset[i].x) * (YB - ptset[i].y) / (ptset[i + 1].y - ptset[i + 1].y);
+				}
+				else if ((TOP & code1) != 0) {
+					y = YT;
+					x = (float)ptset[i].x + (ptset[i + 1].x - ptset[i].x) * (YT - ptset[i].y) / (ptset[i + 1].y - ptset[i].y);
+				}
+				ptset[i].x = (long)x;
+				ptset[i].y = (long)y;
+				pDC->LineTo(ptset[i].x, ptset[i].y);
+			}
+		}
+	}
+}
+/*******************************************************/
+/*******************************************************/
+/*裁剪测试代码*/
