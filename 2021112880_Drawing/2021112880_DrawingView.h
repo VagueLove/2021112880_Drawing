@@ -44,6 +44,15 @@ public:
 	void MouseMove_IsSelect(CPoint point);
 	//鼠标移动，根据不同颜色绘制图形
 	void MouseMove_Draw(CPoint point, int color);
+	void my_large_redraw();//局部放大重绘
+	void my_own_redraw();
+	int part_large_down_count = 0;//局部放大，第一次点击放大，第二次恢复
+	int move_count = 0;
+	CRect my_rect_cut;//裁剪框
+	bool do_cut = false;//是否正在进行裁剪
+	bool my_cut_clear = true;//裁剪框是否清除
+	CPoint base_point;
+
 protected:
 	
 	
@@ -123,6 +132,7 @@ public:
 	afx_msg void OnTranslate();
 	afx_msg void OnScale();
 	afx_msg void OnClipline();
+	afx_msg void OnSelectrect();
 };
 
 #ifndef _DEBUG  // 2021112880_DrawingView.cpp 中的调试版本

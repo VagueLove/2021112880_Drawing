@@ -78,6 +78,7 @@ ON_COMMAND(ID_Rotate, &CMy2021112880DrawingView::OnRotate)
 ON_COMMAND(ID_Translate, &CMy2021112880DrawingView::OnTranslate)
 ON_COMMAND(ID_Scale, &CMy2021112880DrawingView::OnScale)
 ON_COMMAND(ID_ClipLine, &CMy2021112880DrawingView::OnClipline)
+ON_COMMAND(ID_SelectRect, &CMy2021112880DrawingView::OnSelectrect)
 END_MESSAGE_MAP()
 
 /*******************************************************/
@@ -181,6 +182,27 @@ void CMy2021112880DrawingView::OnDraw(CDC* pDC)
 			ReleaseDC(pDC);
 		}
 	}
+	if (!my_rect_cut.IsRectEmpty())
+	{
+		CDC* pDC = GetDC();
+		// 创建一个笔，用于绘制矩形的边框
+		CPen pen(PS_DASH, 1, RGB(0, 0, 0));
+		CPen* pOldPen = pDC->SelectObject(&pen);
+
+		// 创建一个空刷子，用于绘制矩形的内部
+		CBrush brush;
+		brush.CreateStockObject(NULL_BRUSH);
+		CBrush* pOldBrush = pDC->SelectObject(&brush);
+
+		// 绘制矩形
+		pDC->Rectangle(my_rect_cut);
+
+		// 恢复原来的笔和刷子
+		pDC->SelectObject(pOldPen);
+		pDC->SelectObject(pOldBrush);
+		ReleaseDC(pDC);
+
+	}
 }
 
 // CMy2021112880DrawingView 打印
@@ -197,7 +219,7 @@ void CMy2021112880DrawingView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo
 
 void CMy2021112880DrawingView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
-	// TODO: 添加打印后进行的清理过程
+	// TODO: 添加打印后进行的清理过程 
 }
 
 // CMy2021112880DrawingView 诊断
@@ -352,6 +374,35 @@ void CMy2021112880DrawingView::LButtonDown_Set_Type(CPoint point)
 			m_bSpline->SetControlPoint(point);
 		}
 		
+	}break;
+	case 9:
+	{
+		if (!my_rect_cut.PtInRect(point))
+		{
+			do_cut = true;
+			my_cut_clear = false;
+			base_point = point;
+			my_rect_cut.SetRect(point.x, point.y, point.x, point.y);
+		}
+		else if (my_rect_cut.PtInRect(point))
+		{
+			if (part_large_down_count == 0)
+			{
+				my_large_redraw();
+				part_large_down_count++;
+			}
+			else if (part_large_down_count > 0)
+			{
+				// 清空m_rectSelection
+				my_rect_cut.SetRectEmpty();
+				my_cut_clear = true;
+				part_large_down_count = 0;
+				/*HCURSOR hCur = LoadCursor(NULL, IDC_WAIT);
+				::SetCursor(hCur);*/
+				Invalidate();
+				//my_own_redraw();
+			}
+		}
 	}break;
 	default:
 		break;
@@ -571,6 +622,21 @@ void CMy2021112880DrawingView::LButtonUp_Set_RGB_Type(CPoint point)
 		}
 	}
 	break;
+	case 9:
+	{
+		if (do_cut)
+		{
+			if (my_rect_cut.bottom - my_rect_cut.top == 0)
+			{
+				// 清空my_rect_select
+				my_rect_cut.SetRectEmpty();
+				my_cut_clear = true;
+				my_own_redraw();
+			}
+			do_cut = false;
+		}
+	}break;
+	default:break;
 	}
 }
 void CMy2021112880DrawingView::LButtonUp_Set_Function()
@@ -980,10 +1046,104 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 		}
 		m_bspline->Draw(pDC, point, what_RGB);
 	}break;
+	case 9:
+	{
+		if (do_cut)
+		{
+			my_cut_clear = false;
+			// 使用鼠标的当前位置更新my_rect_cut的边
+			if (point.x >= base_point.x) my_rect_cut.right = point.x;
+			else my_rect_cut.left = point.x;
+			if (point.y >= base_point.y) my_rect_cut.bottom = point.y;
+			else my_rect_cut.top = point.y;
+			//my_own_redraw();
+			Invalidate();
+		}
+	}break;
 	default:
 		break;
 	}
+	if (type != 9 && !my_cut_clear)
+	{
+		// 清空my_rect_cut
+		my_rect_cut.SetRectEmpty();
+		my_cut_clear = true;
+		my_own_redraw();
+	}
 	ReleaseDC(pDC);
+}
+
+void CMy2021112880DrawingView::my_large_redraw()
+{
+	// 计算选区的大小和位置
+	int zoomWidth = my_rect_cut.Width() * 2;
+	int zoomHeight = my_rect_cut.Height() * 2;
+	// 创建一个用于放大显示的内存 DC
+	CDC memDC;
+	memDC.CreateCompatibleDC(NULL);
+	// 创建一个与放大显示区域大小相同的内存位图
+	CBitmap zoomBitmap;
+	zoomBitmap.CreateCompatibleBitmap(GetDC(), zoomWidth, zoomHeight);
+	memDC.SelectObject(&zoomBitmap);
+	// 将需要放大显示的区域拷贝到内存 DC 中，并按比例拉伸
+	memDC.StretchBlt(0, 0, zoomWidth, zoomHeight, GetDC(), my_rect_cut.left, my_rect_cut.top,
+		my_rect_cut.Width(), my_rect_cut.Height(), SRCCOPY);
+	CRect rect;
+	GetClientRect(&rect);
+	// 将放大后的图像绘制到整个窗口区域
+	CDC* pDC = GetDC();
+	pDC->StretchBlt(0, 0, rect.Width(), rect.Height(), &memDC, 0, 0, zoomWidth, zoomHeight, SRCCOPY);
+	// 释放资源
+	ReleaseDC(pDC);
+	memDC.DeleteDC();
+	zoomBitmap.DeleteObject();
+	CRect rect_1;
+	GetClientRect(rect_1);
+	my_rect_cut = rect_1;
+}
+
+void CMy2021112880DrawingView::my_own_redraw()
+{
+	int i, len;
+	len = m_link_list.Length();
+	if (len)
+	{
+		for (i = 1; i <= len; i++)
+		{
+			CDC* pDC = GetDC();
+			//避免图形重叠
+			pDC->SelectStockObject(NULL_BRUSH);
+			Node* paint = m_link_list.GetElement(i);
+			DataDraw* ddraw = DataDraw::Get_Draw(paint->now_type);
+			if (ddraw)
+			{
+				ddraw->Draw(paint, pDC);
+				delete ddraw;
+			}
+			ReleaseDC(pDC);
+		}
+	}
+	if (!my_rect_cut.IsRectEmpty())
+	{
+		CDC* pDC = GetDC();
+		// 创建一个笔，用于绘制矩形的边框
+		CPen pen(PS_DASH, 1, RGB(0, 0, 0));
+		CPen* pOldPen = pDC->SelectObject(&pen);
+
+		// 创建一个空刷子，用于绘制矩形的内部
+		CBrush brush;
+		brush.CreateStockObject(NULL_BRUSH);
+		CBrush* pOldBrush = pDC->SelectObject(&brush);
+
+		// 绘制矩形
+		pDC->Rectangle(my_rect_cut);
+
+		// 恢复原来的笔和刷子
+		pDC->SelectObject(pOldPen);
+		pDC->SelectObject(pOldBrush);
+		ReleaseDC(pDC);
+
+	}
 }
 
 void CMy2021112880DrawingView::MouseMove_IsSelect(CPoint point)
@@ -1490,3 +1650,9 @@ void CMy2021112880DrawingView::OnClipline()
 /*******************************************************/
 /*******************************************************/
 /*裁剪测试代码*/
+
+void CMy2021112880DrawingView::OnSelectrect()
+{
+ 	// TODO: 在此添加命令处理程序代码
+	type = 9;//选取框
+}
