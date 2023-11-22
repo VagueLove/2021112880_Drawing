@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 class BSpline
 {
 public:
@@ -9,6 +10,7 @@ private:
 	double knot[10];//节点数组
 	int n = -1;//控制点数-1
 	int k;//次数
+	std::vector<CPoint> points;//曲线上的点
 public:
 	void DrawBSplineCurve(CDC* pDC);//绘制B样条曲线
 	void DrawControlPolygon(CDC* pDC);//绘制控制点

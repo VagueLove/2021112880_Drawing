@@ -1,7 +1,8 @@
 #pragma once
 #include "Graphics.h"
 #include <vector>
-class CCircle : public Graphics
+#include "Transform.h"
+class CCircle : public Graphics, public Transform
 {
 public:
 	CCircle();
@@ -23,6 +24,12 @@ public:
 	void Set_Bresenham_True();
 	void Set_Bresenham_False();
 
+	//平移实现
+	void Translate(double tx, double ty);
+	//比例变换
+	void Scale(double sx, double sy);
+	//保存变换后的图形
+	void SaveTransform();
 	//std::vector<CPoint> Pixel_Points;
 private:
 	CPoint m_CenPoint;
@@ -30,5 +37,7 @@ private:
 	bool is_CenPoint;
 	bool Is_Bresenham_Draw;
 	int color_sequence = 0;
+public:
+	bool IsTransform = false;
 }; 
  

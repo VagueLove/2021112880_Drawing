@@ -22,8 +22,9 @@ void BSpline::DrawBSplineCurve(CDC* pDC)
 		{
 			double BValue = BasisFunctionValue(t, i, k);
 			p.x += P[i].x * BValue;//B样条曲线定义
-			p.y += P[i].y * BValue;//B样条曲线定义
+			p.y += P[i].y * BValue;
 		}
+		points.push_back(p);
 		if (0.0 == t)
 			pDC->MoveTo(ROUND(p.x), ROUND(p.y));
 		else

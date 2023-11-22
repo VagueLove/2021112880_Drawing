@@ -74,6 +74,9 @@ ON_COMMAND(ID_Simple_Seed_Fill, &CMy2021112880DrawingView::OnSimpleSeedFill)
 ON_COMMAND(ID_B_Spline_Curve, &CMy2021112880DrawingView::OnBSplineCurve)
 ON_COMMAND(ID_Bezier, &CMy2021112880DrawingView::OnBezier)
 ON_COMMAND(ID_BSpline_3, &CMy2021112880DrawingView::OnBspline3)
+ON_COMMAND(ID_Rotate, &CMy2021112880DrawingView::OnRotate)
+ON_COMMAND(ID_Translate, &CMy2021112880DrawingView::OnTranslate)
+ON_COMMAND(ID_Scale, &CMy2021112880DrawingView::OnScale)
 END_MESSAGE_MAP()
 
 // CMy2021112880DrawingView 构造/析构
@@ -91,6 +94,8 @@ CMy2021112880DrawingView::CMy2021112880DrawingView() noexcept
 	IsSelected = false;
 	IsOpenSelect = false;
 	Padding_type = 0;
+	initTransformPoint.x = 0;
+	initTransformPoint.y = 0;
 }
 
 CMy2021112880DrawingView::~CMy2021112880DrawingView(){}
@@ -244,22 +249,24 @@ void CMy2021112880DrawingView::LButtonDown_Set_Type(CPoint point)
 	case 1:
 	{
 		m_pline = new CLine;
-		m_pline->Set_start_point(point);
-		if(CenPointDraw == 1)
-			m_pline->Set_CenPointDraw_True();
+		if(function != 6 && function != 7 && function != 8)
+			m_pline->Set_start_point(point);
+		if(CenPointDraw == 1)m_pline->Set_CenPointDraw_True();
 
 	}break;
 
 	case 2:
 	{
 		m_psquare = new CQuare;
-		m_psquare->Set_first_point(point);
+		if (function != 6 && function != 7 && function != 8)
+			m_psquare->Set_first_point(point);
 	}break;
 
 	case 3:
 	{
 		m_pcircle = new CCircle;
-		m_pcircle->Set_CenPoint(point);
+		if (function != 6 && function != 7 && function != 8)
+			m_pcircle->Set_CenPoint(point);
 		if (BresenhamDraw)
 			m_pcircle->Set_Bresenham_True();
 	}break;
@@ -436,13 +443,28 @@ void CMy2021112880DrawingView::LButtonDown_Set_Function(CPoint point)
 			ReleaseDC(pDC);
 		}
 	}break;
+	//图形变换--平移
+	case 6:
+	{
+		//获取鼠标按下的坐标作为初始坐标
+		initTransformPoint = point;
+	}break;
+	case 7:
+	{
+		//获取鼠标按下的坐标作为初始坐标
+		initTransformPoint = point;
+	}break;
+	case 8:
+	{
+		//获取鼠标按下的坐标作为初始坐标
+		initTransformPoint = point;
+	}break;
 	default:break;
 	}
 }
 
 void CMy2021112880DrawingView::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	LButtonDown_Set_RGB();
 	LButtonDown_Set_Type(point);
 	LButtonDown_Set_Function(point);
@@ -622,6 +644,27 @@ void CMy2021112880DrawingView::LButtonUp_Set_Function()
 	case 5:
 	{
 
+	}break;	
+	case 6:
+	{
+		initTransformPoint.x = 0;
+		initTransformPoint.y = 0;
+
+	}break;
+	case 7:
+	{
+		initTransformPoint.x = 0;
+		initTransformPoint.y = 0;
+		if (type == 1)m_pline->SaveTransform();
+		else if (type == 2)m_psquare->SaveTransform();
+		else if (type == 3)m_pcircle->SaveTransform();
+	}break;	
+	case 8:
+	{
+		initTransformPoint.x = 0;
+		initTransformPoint.y = 0;
+		if (type == 1)m_pline->SaveTransform();
+		else if (type == 2)m_psquare->SaveTransform();
 	}break;
 	default:
 		break;
@@ -662,7 +705,8 @@ void CMy2021112880DrawingView::Draw_Point(CPoint point)
 void CMy2021112880DrawingView::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	LButtonUp_Set_RGB_Type(point);
+	if (function != 6 && function != 7 && function != 8)
+		LButtonUp_Set_RGB_Type(point);
 	LButtonUp_Set_Function();
 
 	go = false;
@@ -688,32 +732,121 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 	{
 	case 1:
 	{
-		m_pline->SetColor(color);
-		if (go)
-		{
-			pDC->SetROP2(R2_NOTXORPEN);
-			m_pline->Draw(pDC);
-		}
-		else
-		{
-			go = true;
-		}
-		m_pline->Set_end_point(point);
-		m_pline->Draw(pDC);
+			m_pline->SetColor(color);
+			if (go)
+			{
+				pDC->SetROP2(R2_NOTXORPEN);
+				m_pline->Draw(pDC);
+			}
+			else
+			{
+				go = true;
+			}
+			if(!initTransformPoint.x && !initTransformPoint.y)
+			{
+				m_pline->Set_end_point(point);
+				m_pline->Draw(pDC);
+			}
+			else
+			{
+				if (m_pline->GetStart().x == 0)
+					break;
+				switch (function)
+				{
+				case 6:
+				{
+					double sx = point.x - initTransformPoint.x;
+					double sy = point.y - initTransformPoint.y;
+					initTransformPoint = point;
+					m_pline->Translate(sx, sy);
+					m_pline->Draw(pDC);
+				}break;				
+				case 7:
+				{
+					double sx = sqrt((point.x - initTransformPoint.x) * (point.x - initTransformPoint.x)
+								+ (point.y - initTransformPoint.y) * (point.y - initTransformPoint.y));
+					if (initTransformPoint.x * initTransformPoint.x + initTransformPoint.y * initTransformPoint.y
+						- point.x * point.x - point.y * point.y > 0)
+					{
+						sx = -sx;
+					}
+					m_pline->Scale(sx, sx);
+					m_pline->Draw(pDC);
+				}break;
+				case 8:
+				{
+					if (go)
+					{
+						pDC->SetROP2(R2_NOTXORPEN);
+						m_pline->Draw(pDC);
+					}
+					else
+					{
+						go = true;
+					}
+					m_pline->Rotate(point);
+					m_pline->Draw(pDC);
+
+				}break;
+				default:
+					break;
+				}
+			}
 	}break;	
 	case 2:
 	{
 		if (go)
 		{
 			pDC->SetROP2(R2_NOTXORPEN);
+			if (!m_psquare->IsTransform && m_psquare->IsDraw())
 			m_psquare->Draw(pDC);
+			else
+			m_psquare->TraDraw(pDC);
 		}
 		else
 		{
 			go = true;
 		}
-		m_psquare->Set_end_point(point);
-		m_psquare->Draw(pDC);
+		if (!initTransformPoint.x && !initTransformPoint.y)
+		{
+			m_psquare->Set_end_point(point);
+			m_psquare->Draw(pDC);
+		}
+		else
+		{
+			if (m_psquare->GetStart().x == 0)
+				break;
+			switch (function)
+			{
+			case 6:
+			{
+				double sx = point.x - initTransformPoint.x;
+				double sy = point.y - initTransformPoint.y;
+				initTransformPoint = point;
+				m_psquare->Translate(sx, sy);
+				m_psquare->Draw(pDC);
+			}break;
+			case 7:
+			{
+				double sx = sqrt((point.x - initTransformPoint.x) * (point.x - initTransformPoint.x)
+					+ (point.y - initTransformPoint.y) * (point.y - initTransformPoint.y));
+				if (initTransformPoint.x * initTransformPoint.x + initTransformPoint.y * initTransformPoint.y
+					- point.x * point.x - point.y * point.y > 0)
+				{
+					sx = -sx;
+				}
+				m_psquare->Scale(sx, sx);
+				m_psquare->TraDraw(pDC);
+			}break;
+			case 8:
+			{
+				m_psquare->Rotate(point);
+				m_psquare->TraDraw(pDC);
+			}break;
+			default:
+				break;
+			}
+		}
 	}break;	
 	case 3:
 	{
@@ -727,8 +860,37 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 		{
 			go = true;
 		}
-		m_pcircle->Get_Radius(point);
-		m_pcircle->Draw(pDC);
+		if (!initTransformPoint.x && !initTransformPoint.y)
+		{
+			m_pcircle->Get_Radius(point);
+			m_pcircle->Draw(pDC);
+		}
+		else
+		{
+			if (m_pcircle->GetCenter().x == 0)
+				break;
+			switch (function)
+			{
+			case 6:
+			{
+				double sx = point.x - initTransformPoint.x;
+				double sy = point.y - initTransformPoint.y;
+				initTransformPoint = point;
+				m_pcircle->Translate(sx, sy);
+				m_pcircle->Draw(pDC);
+			}break;
+			case 7:
+			{
+				m_pcircle->Get_Radius(point);
+				m_pcircle->Draw(pDC);
+			}break;
+			case 8:
+			{
+			}break;
+			default:
+				break;
+			}
+		}
 	}break;	
 	case 4:
 	{
@@ -796,7 +958,9 @@ void CMy2021112880DrawingView::MouseMove_IsSelect(CPoint point)
 			{
 				if (((CLine*)select->data)->Selected(point))
 				{
+					type = 1;
 					IsSelected = true;
+					if (function)m_pline = ((CLine*)select->data);
 					break;
 				}
 				else
@@ -806,7 +970,9 @@ void CMy2021112880DrawingView::MouseMove_IsSelect(CPoint point)
 			{
 				if (((CQuare*)select->data)->Selected(point) && IsOpenSelect)
 				{
+					type = 2;
 					IsSelected = true;
+					if(function)m_psquare = ((CQuare*)select->data);
 					Padding_type = 2;
 					break;
 				}
@@ -817,7 +983,9 @@ void CMy2021112880DrawingView::MouseMove_IsSelect(CPoint point)
 			{
 				if (((CCircle*)select->data)->Selected(point) && IsOpenSelect)
 				{
+					type = 3;
 					IsSelected = true;
+					if (function)m_pcircle = ((CCircle*)select->data);
 					Padding_type = 3;
 					break;
 				}
@@ -873,9 +1041,10 @@ void CMy2021112880DrawingView::OnMouseMove(UINT nFlags, CPoint point)
 	str.Format(_T("(%d,%d) "), point.x, point.y);
 	CDC* pDC = GetDC();
 	pDC->TextOutW(0, 0, str);
-	
 	MouseMove_Draw_Basic_Graphics(point);
-	MouseMove_IsSelect(point);
+	if(IsOpenSelect)
+		MouseMove_IsSelect(point);
+
 	CView::OnMouseMove(nFlags, point);
 }
 
@@ -951,16 +1120,19 @@ void CMy2021112880DrawingView::OnRButtonUp(UINT nFlags, CPoint point)
 	}
 	else if (type == 8)
 	{
-		//右键抬起绘制B_3曲线
-		CDC* pDC = GetDC();
-		m_bSpline->DrawBSplineCurve(pDC);
-		m_bSpline->DrawControlPolygon(pDC);
-		Node* rpaint = new Node;
-		rpaint->now_type = 8;
-		rpaint->data = m_bSpline;
-		m_link_list.InputFront(rpaint);
-		m_bSpline = new BSpline;
-		ReleaseDC(pDC);
+		if(m_bSpline->GetN() == 5)//确保已经初始化六个控制点后才绘制图形
+		{
+			//右键抬起绘制B_3曲线
+			CDC* pDC = GetDC();
+			m_bSpline->DrawBSplineCurve(pDC);
+			m_bSpline->DrawControlPolygon(pDC);
+			Node* rpaint = new Node;
+			rpaint->now_type = 8;
+			rpaint->data = m_bSpline;
+			m_link_list.InputFront(rpaint);
+			m_bSpline = new BSpline;
+			ReleaseDC(pDC);
+		}
 	}
 	//填充
 	{
@@ -1115,4 +1287,22 @@ void CMy2021112880DrawingView::OnBspline3()
 	type = 8;
 	if (!m_bSpline)
 		m_bSpline = new BSpline;
+}
+
+void CMy2021112880DrawingView::OnTranslate()
+{
+	// TODO: 在此添加命令处理程序代码
+	function = 6;
+}
+
+void CMy2021112880DrawingView::OnScale()
+{
+	// TODO: 在此添加命令处理程序代码
+	function = 7;
+}
+
+void CMy2021112880DrawingView::OnRotate()
+{
+	// TODO: 在此添加命令处理程序代码
+	function = 8;
 }

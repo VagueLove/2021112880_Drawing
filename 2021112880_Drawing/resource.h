@@ -57,13 +57,19 @@
 #define ID_Bezier                       32845
 #define ID_32846                        32846
 #define ID_BSpline_3                    32847
+#define ID_32848                        32848
+#define ID_32849                        32849
+#define ID_32850                        32850
+#define ID_Translate                    32851
+#define ID_Scale                        32852
+#define ID_Rotate                       32853
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        310
-#define _APS_NEXT_COMMAND_VALUE         32848
+#define _APS_NEXT_COMMAND_VALUE         32854
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

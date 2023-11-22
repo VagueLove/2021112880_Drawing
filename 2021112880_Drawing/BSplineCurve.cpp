@@ -60,7 +60,6 @@ CPoint BSplineCurve::BSpline(int n, int k, double t, std::vector<CPoint> control
     double x = 0.0, y = 0.0, value = 0.0;
     for (int i = 0; i < n; i++) {
         value = BaseFunction(i, k, t, knot);
-       /* value = BasisFunctionValue(t, i, k, knot);*/
         x += control[i].x * value;
         y += control[i].y * value;
     }

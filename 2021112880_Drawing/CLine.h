@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics.h"
-class CLine :public Graphics
+#include "Transform.h"
+class CLine :public Graphics, public Transform
 {
 public:
 	CLine();
@@ -19,6 +20,15 @@ public:
 	void Draw(CDC* pDC);
 	void CenPointDraw(CDC* pDC);
 	int Selected(CPoint p);
+	//平移实现
+	void Translate(double, double);
+	//比例变换
+	void Scale(double, double);
+	//旋转变换
+	void Rotate(CPoint);
+
+	//保存变换后的图形
+	void SaveTransform();
 
 	void SetColor(int );
 private:
@@ -26,8 +36,12 @@ private:
 	CPoint Line_start_point;
 	//终点
 	CPoint Line_end_point;
+	//中点
+	CPoint centerPoint;
 	//是否采用中点画线法画线
 	bool Is_CenPointDraw;
 	int color_sequence = 0;
+public:
+	bool IsTransform = false;
 };
 

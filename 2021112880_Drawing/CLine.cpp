@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "CLine.h"
+#include <iostream>
+#define PI 3.14159
 
 CLine::CLine()
 {
@@ -80,16 +82,23 @@ void CLine::Set_CenPointDraw_False()
 }
 void CLine::Draw(CDC* pDC)
 {
+	
 	if (Is_CenPointDraw)
 	{
 		//采用中点画线法绘制直线
 		CenPointDraw(pDC);
+	}
+	else if (IsTransform)
+	{
+		pDC->MoveTo(POld[0].x,POld[0].y);
+		pDC->LineTo(POld[1].x, POld[1].y);
 	}
 	else
 	{
 		pDC->MoveTo(Line_start_point);
 		pDC->LineTo(Line_end_point);
 	}
+
 }
 
 CPoint CLine::GetStart()
@@ -120,4 +129,55 @@ int CLine::Selected(CPoint p)
 void CLine::SetColor(int color)
 {
 	color_sequence = color;
+}
+
+void CLine::Translate(double tx, double ty)
+{
+	POld[0].x = Line_start_point.x;
+	POld[0].y = Line_start_point.y;
+	POld[1].x = Line_end_point.x;
+	POld[1].y = Line_end_point.y;
+	Identity();
+	T[2][0] = tx;
+	T[2][1] = ty;
+	MultiMatrix();
+	SaveTransform();
+}
+
+void CLine::Scale(double sx, double sy)
+{
+	centerPoint = Line_start_point + Line_end_point;
+	if (POld[1].x * POld[1].x + POld[1].y * POld[1].y - centerPoint.x * centerPoint.x / 4
+		- centerPoint.y * centerPoint.y / 4 < 0)
+		return;
+	POld[0].x = Line_start_point.x;
+	POld[0].y = Line_start_point.y;
+	POld[1].x = Line_end_point.x;
+	POld[1].y = Line_end_point.y;
+	Identity();
+	T[0][0] = 1 + sx / 2000;
+	T[1][1] = 1 + sy / 2000;
+	POld[1].x *= T[0][0];
+	POld[1].y *= T[1][1];
+	IsTransform = true;
+}
+
+void CLine::Rotate(CPoint point)
+{
+	double d = (Line_end_point.x - Line_start_point.x) * (Line_end_point.x - Line_start_point.x) +
+		(Line_end_point.y - Line_start_point.y) * (Line_end_point.y - Line_start_point.y);
+	double d1 = d - 5, d2 = d + 5;
+	if ((point.x - Line_start_point.x) * (point.x - Line_start_point.x) +
+			(point.y - Line_start_point.y) * (point.y - Line_start_point.y) < d+5)
+	{
+		Set_end_point(point);
+		IsTransform = true;
+	}
+}
+
+void CLine::SaveTransform()
+{
+	IsTransform = false;
+	Line_start_point = { POld[0].x, POld[0].y };
+	Line_end_point = { POld[1].x, POld[1].y };
 }

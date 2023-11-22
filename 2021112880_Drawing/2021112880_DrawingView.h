@@ -79,6 +79,7 @@ public:
 	bool IsSelected;
 	bool start;
 	bool go;
+	CPoint initTransformPoint;
 
 protected:
 
@@ -117,6 +118,9 @@ public:
 	afx_msg void OnBSplineCurve();
 	afx_msg void OnBezier();
 	afx_msg void OnBspline3();
+	afx_msg void OnRotate();
+	afx_msg void OnTranslate();
+	afx_msg void OnScale();
 };
 
 #ifndef _DEBUG  // 2021112880_DrawingView.cpp 中的调试版本

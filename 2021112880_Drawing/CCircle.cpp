@@ -30,6 +30,11 @@ void CCircle::Draw(CDC* pDC)
 	{
 		BresenhamDraw(pDC);
 	}
+	else if (IsTransform)
+	{
+		pDC->Ellipse(POld[0].x - m_Radius, POld[0].y - m_Radius,
+			POld[0].x + m_Radius, POld[0].y + m_Radius);
+	}
 	else
 	{
 		pDC->Ellipse(m_CenPoint.x - m_Radius, m_CenPoint.y - m_Radius, 
@@ -109,4 +114,25 @@ void CCircle::Set_Bresenham_True()
 void CCircle::Set_Bresenham_False()
 {
 	Is_Bresenham_Draw = false;
+}
+
+void CCircle::Translate(double tx, double ty)
+{
+	Identity();
+	T[2][0] = tx;
+	T[2][1] = ty;
+	POld[0].x = m_CenPoint.x + T[2][0];
+	POld[0].y = m_CenPoint.y + T[2][1];
+	IsTransform = true;
+	SaveTransform();
+}
+
+void CCircle::Scale(double sx, double sy)
+{
+}
+
+void CCircle::SaveTransform()
+{
+	IsTransform = false;
+	m_CenPoint = { POld[0].x, POld[0].y };
 }
