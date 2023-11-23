@@ -52,6 +52,7 @@ public:
 	bool do_cut = false;//是否正在进行裁剪
 	bool my_cut_clear = true;//裁剪框是否清除
 	CPoint base_point;
+	void CMy2021112880DrawingView::ClipLine();
 
 protected:
 	

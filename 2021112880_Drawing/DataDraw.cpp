@@ -46,7 +46,7 @@ void CquareDraw::Draw(Node* p, CDC* pDC)
 	}
 	CPen pen(PS_SOLID, 1, color);
 	CPen* pOldPen = (CPen*)pDC->SelectObject(&pen);
-	((CQuare*)p->data)->TraDraw(pDC);
+	((CQuare*)p->data)->ReDraw(pDC);
 
 }
 void CircleDraw::Draw(Node* p, CDC* pDC)

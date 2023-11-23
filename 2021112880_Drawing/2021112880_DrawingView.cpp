@@ -137,7 +137,7 @@ void CMy2021112880DrawingView::OnDraw(CDC* pDC)
 /*******************************************************/
 /*******************************************************/
 /*裁剪测试代码*/
-	//if(function == 9)
+	if(function == 9)
 	{
 		CPen newpen(PS_SOLID, 1, RGB(0, 0, 0));
 		CPen* old = pDC->SelectObject(&newpen);
@@ -150,19 +150,12 @@ void CMy2021112880DrawingView::OnDraw(CDC* pDC)
 		ptset[5] = CPoint(150, 230);
 		ptset[6] = CPoint(200, 50);
 		ptset[7] = CPoint(120, 150);
-		pDC->TextOutW(0, 20, L"双击鼠标左键，出现要剪切的线段");
+		pDC->TextOutW(0, 20, L"双击鼠标左键，出现要剪切的线段,右键按下完成裁剪");
 		pDC->SelectObject(old);
 	}
 /*******************************************************/
 /*******************************************************/
 /*裁剪测试代码*/
-	//CRect rect;//定义矩形
-	//GetClientRect(&rect);//获得客户区的大小
-	//pDC->SetMapMode(MM_ANISOTROPIC);//pDC自定义坐标系
-	//pDC->SetWindowExt(rect.Width(), rect.Height());//设置窗口范围
-	//pDC->SetViewportExt(rect.Width(), -rect.Height());//设置视区范围,x轴水平向右，y轴垂直向上
-	//pDC->SetViewportOrg(rect.Width() / 2, rect.Height() / 2);//客户区中心为原点
-
 	int i, len;
 	len = m_link_list.Length();
 	if (len)
@@ -932,7 +925,7 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 				double sy = point.y - initTransformPoint.y;
 				initTransformPoint = point;
 				m_psquare->Translate(sx, sy);
-				m_psquare->Draw(pDC);
+				m_psquare->TraDraw(pDC);
 			}break;
 			case 7:
 			{
@@ -1075,31 +1068,35 @@ void CMy2021112880DrawingView::MouseMove_Draw(CPoint point, int color)
 
 void CMy2021112880DrawingView::my_large_redraw()
 {
-	// 计算选区的大小和位置
-	int zoomWidth = my_rect_cut.Width() * 2;
-	int zoomHeight = my_rect_cut.Height() * 2;
+	CRect rect;
+	GetClientRect(&rect);
+	double s1 = rect.Width() / (double)my_rect_cut.Width();
+	double s2 = rect.Height() / (double)my_rect_cut.Height();
+	int  zoomWidth = s1 > s2 ? my_rect_cut.Width() * s2 : my_rect_cut.Width() * s1;
+	int zoomHeight = s1 > s2 ? my_rect_cut.Height() * s2 : my_rect_cut.Height() * s1;
+
+	int lx = s1 > s2 ? (rect.Width() - zoomWidth) / 2 : 0;
+	int ty = s1 > s2 ? 0 : (rect.Height() - zoomHeight) / 2;
 	// 创建一个用于放大显示的内存 DC
 	CDC memDC;
 	memDC.CreateCompatibleDC(NULL);
 	// 创建一个与放大显示区域大小相同的内存位图
 	CBitmap zoomBitmap;
-	zoomBitmap.CreateCompatibleBitmap(GetDC(), zoomWidth, zoomHeight);
+	zoomBitmap.CreateCompatibleBitmap(GetDC(), rect.Width(), rect.Height());
 	memDC.SelectObject(&zoomBitmap);
+	memDC.FillSolidRect(rect, 0xffffff); // 按原来背景填充客户区，不然会是黑色
 	// 将需要放大显示的区域拷贝到内存 DC 中，并按比例拉伸
-	memDC.StretchBlt(0, 0, zoomWidth, zoomHeight, GetDC(), my_rect_cut.left, my_rect_cut.top,
+	memDC.StretchBlt(lx, ty, zoomWidth, zoomHeight, GetDC(), my_rect_cut.left, my_rect_cut.top,
 		my_rect_cut.Width(), my_rect_cut.Height(), SRCCOPY);
-	CRect rect;
-	GetClientRect(&rect);
+
 	// 将放大后的图像绘制到整个窗口区域
 	CDC* pDC = GetDC();
-	pDC->StretchBlt(0, 0, rect.Width(), rect.Height(), &memDC, 0, 0, zoomWidth, zoomHeight, SRCCOPY);
+	pDC->StretchBlt(0, 0, rect.Width(), rect.Height(), &memDC, 0, 0, rect.Width(), rect.Height(), SRCCOPY);
 	// 释放资源
 	ReleaseDC(pDC);
 	memDC.DeleteDC();
 	zoomBitmap.DeleteObject();
-	CRect rect_1;
-	GetClientRect(rect_1);
-	my_rect_cut = rect_1;
+	my_rect_cut = rect;
 }
 
 void CMy2021112880DrawingView::my_own_redraw()
@@ -1403,6 +1400,9 @@ void CMy2021112880DrawingView::OnRButtonUp(UINT nFlags, CPoint point)
 			ReleaseDC(pDC);
 		}
 	}
+	{
+		if (function == 9)ClipLine();
+	}
 	IsOpenSelect = false;
 	CView::OnRButtonUp(nFlags, point);
 }
@@ -1523,7 +1523,24 @@ void CMy2021112880DrawingView::OnRotate()
 /*裁剪测试代码*/
 void CMy2021112880DrawingView::OnClipline()
 {
-	//function = 9;
+	function = 9;
+	CDC* pDC = GetDC();
+	CPen newpen(PS_SOLID, 1, RGB(0, 0, 0));
+	CPen* old = pDC->SelectObject(&newpen);
+	pDC->Rectangle(CRect(XL, YT, XR, YB));
+	ptset[0] = CPoint(120, 150);
+	ptset[1] = CPoint(170, 110);
+	ptset[2] = CPoint(0, 190);
+	ptset[3] = CPoint(350, 150);
+	ptset[4] = CPoint(0, 250);
+	ptset[5] = CPoint(150, 230);
+	ptset[6] = CPoint(200, 50);
+	ptset[7] = CPoint(120, 150);
+	pDC->TextOutW(0, 20, L"双击鼠标左键，出现要剪切的线段,右键按下完成裁剪");
+	pDC->SelectObject(old);
+}
+void CMy2021112880DrawingView::ClipLine()
+{
 	CDC* pDC = GetDC();
 	CPen newpen(PS_SOLID, 1, RGB(255, 0, 0));
 	CPen* old = pDC->SelectObject(&newpen);
@@ -1531,6 +1548,7 @@ void CMy2021112880DrawingView::OnClipline()
 		MessageBox(L"请先双击鼠标左击", L"警告！");
 	}
 	else {
+		Flag = 0;
 		float x, y;
 		int i;
 		int code1, code2;
